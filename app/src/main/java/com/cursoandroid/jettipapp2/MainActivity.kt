@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -99,22 +100,41 @@ fun TopHeader(totalPerPerson: Double = 134.0){
 @Composable
 fun MainContent(){
 
-    Column() {
-        BillForm(){ billAmt ->
-            Log.d( "AMT", "MainContent: $billAmt" )
-            //Log.d( "AMT", "MainContent: ${billAmt.toInt() * 100}" )
+    val splitByState = remember {
 
-        }
+        mutableStateOf( 1 )
+
+    }
+
+    val range = IntRange( start = 1, endInclusive = 100 )
+
+    val tipamountState = remember {
+        mutableStateOf( 0.0 )
+    }
+
+    val totalPerPersonState = remember {
+        mutableStateOf( 0.0 )
+    }
+
+    Column(modifier = Modifier.padding( all = 12.dp )) {
+        BillForm(splitByState = splitByState,
+                tipAmountState = tipamountState,
+                //range = range,
+                totalPerPersonState = totalPerPersonState){}
 
     }
 
 
 }
 
-@Preview
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun BillForm( modifier: Modifier = Modifier,
+              range: IntRange = 1..100,
+              splitByState: MutableState<Int>,
+              tipAmountState: MutableState<Double>,
+              totalPerPersonState: MutableState<Double>,
                 onValChange: (String) -> Unit = {}
               ){
 
@@ -140,26 +160,11 @@ fun BillForm( modifier: Modifier = Modifier,
 
     val tipPercentage = ( sliderPositionState.value * 100 ).toInt()
 
-    val splitByState = remember {
-
-        mutableStateOf( 1 )
-
-    }
-
-    val range = IntRange( start = 1, endInclusive = 100 )
-
-    val tipamountState = remember {
-        mutableStateOf( 0.0 )
-    }
-
-    val totalPerPersonState = remember {
-        mutableStateOf( 0.0 )
-    }
 
     TopHeader( totalPerPerson = totalPerPersonState.value )
 
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .padding(2.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(corner = CornerSize(8.dp)),
@@ -215,7 +220,7 @@ fun BillForm( modifier: Modifier = Modifier,
                             })
 
                         Text(text = "${splitByState.value}",
-                            modifier = Modifier
+                            modifier = modifier
                                 .align(Alignment.CenterVertically)
                                 .padding(start = 9.dp, end = 9.dp))
 
@@ -241,7 +246,7 @@ fun BillForm( modifier: Modifier = Modifier,
                 }
             
             //Tip Row
-            Row( modifier = Modifier
+            Row( modifier = modifier
                 .padding( horizontal = 3.dp,
                     vertical = 12.dp ) ) {
 
@@ -250,7 +255,7 @@ fun BillForm( modifier: Modifier = Modifier,
                 
                 Spacer(modifier = Modifier.width(200.dp))
                 
-                Text(text = "R$ ${tipamountState.value}",
+                Text(text = "R$ ${tipAmountState.value}",
                     modifier = Modifier.align( alignment = Alignment.CenterVertically ))
 
             }
@@ -266,7 +271,7 @@ fun BillForm( modifier: Modifier = Modifier,
                 Slider(value = sliderPositionState.value,
                     onValueChange = { newVal ->
                         sliderPositionState.value = newVal
-                        tipamountState.value =
+                        tipAmountState.value =
                             calculateTotalTip( totalBill = totalBillState.value.toDouble(),
                                 tippercentage = tipPercentage )
 
